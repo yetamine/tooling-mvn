@@ -1,0 +1,48 @@
+#!/bin/bash
+#|
+#| Prints the output of an interpolation template executed for all Maven
+#| projects, which can be useful for Maven reactors, e.g., to display the
+#| build order.
+#|
+#| Usage:
+#|
+#| mvn-ext-print [-h] TEMPLATE
+#|
+#| Options:
+#|   -h, --help         show this help and exit
+#|
+#| Arguments:
+#|   TEMPLATE           the template to pass to Maven to interpolate
+#|
+#| The TEMPLATE may (and actually is supposed to) refer to Maven properties. For
+#| instance, following example displays the project directories and when used in
+#| a reactor, it provides the project build order:
+#|
+#|   mvn-ext-print '${project.basedir}'
+
+SCRIPT_FILE="${BASH_SOURCE[0]}"
+while [[ -n "$1" ]]; do
+    case "$1" in
+    -h|--help)
+        sed '/#|.*/ s/^#|[[:space:]]\?//p;d' < "$SCRIPT_FILE"
+        exit 1
+        ;;
+        
+    --)
+        shift
+        break
+        ;;
+
+    -*)
+        echo "Unknown option encountered: '$1'" >&2
+        exit 1
+        ;;
+
+    *)
+        break
+        ;;
+    esac
+done
+
+# Note that the quotes must be used to force Maven to use String instead of File when injecting a File property
+mvn -q org.codehaus.mojo:exec-maven-plugin:1.3.1:exec -Dexec.executable='echo' -Dexec.args=\'"$1"\'
