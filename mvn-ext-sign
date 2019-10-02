@@ -1,0 +1,39 @@
+#!/bin/bash
+#|
+#| Executes Maven 'verify' and 'gpg:sign' with GPG Agent to supply the 
+#| credentials.
+#|
+#| Usage:
+#|
+#| mvn-ext-sign [-h] [--] [ARG...]
+#|
+#| Options:
+#|   -h, --help         show this help and exit
+#|
+#| All additional arguments ARG are passed to Maven to customize the process.
+
+SCRIPT_FILE="${BASH_SOURCE[0]}"
+while [[ -n "$1" ]]; do
+    case "$1" in
+    -h|--help)
+        sed '/#|.*/ s/^#|[[:space:]]\?//p;d' < "$SCRIPT_FILE"
+        exit 1
+        ;;
+        
+    --)
+        shift
+        break
+        ;;
+
+    -*)
+        echo "Unknown option encountered: '$1'" >&2
+        exit 1
+        ;;
+
+    *)
+        break
+        ;;
+    esac
+done
+
+mvn -Dgpg.useagent=true "$@" verify gpg:sign
